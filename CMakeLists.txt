@@ -14,6 +14,7 @@ ament_python_install_package(${PROJECT_NAME})
 # Install Python executables
 install(PROGRAMS
   python_nodes/gamepad_node.py
+  python_nodes/launcher.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
