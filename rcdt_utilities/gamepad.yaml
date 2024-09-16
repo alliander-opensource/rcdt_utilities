@@ -1,0 +1,20 @@
+xbox:
+  axis_max: 32768
+  deadzone: 3000
+  zero: 0
+  mapping:
+    ABS_X": "x"
+    ABS_Y": "y"
+    ABS_RY": "z"
+
+stadia:
+  axis_max: 128
+  deadzone: 10
+  zero: 128
+  mapping:
+    ABS_X: "x"
+    ABS_Y: "y"
+    ABS_RZ: "z"
+    ABS_Z: "rz"
+    BTN_TR: "gripper_close"
+    BTN_TL: "gripper_open"

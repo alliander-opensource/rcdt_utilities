@@ -16,23 +16,24 @@ from rcdt_utilities.virtual_gamepad import VirtualGamepad
 
 
 @dataclass
-class Vec3:
+class Vec:
     x: float
     y: float
     z: float
+    rz: float
 
 
 class GamepadNode(Node):
     def __init__(self):
         self.scale_factor = 0.5
         super().__init__("rcdt_gamepad")
-        self.declare_parameter("virtual", True)
+        self.declare_parameter("gamepad", "virtual")
         self.topic = "/servo_node/delta_twist_cmds"
         self.frame_id = "fr3_link0"
         self.publisher = self.create_publisher(TwistStamped, self.topic, 10)
         self.move_client = ActionClient(self, Move, "/fr3_gripper/move")
         self.grasp_client = ActionClient(self, Grasp, "/fr3_gripper/grasp")
-        self.vector = Vec3(0, 0, 0)
+        self.vector = Vec(0, 0, 0, 0)
         self.gripper_state = -1
         self.timer = self.create_timer(1 / 100.0, self.publish)
 
@@ -43,15 +44,19 @@ class GamepadNode(Node):
         msg.twist.linear.x = float(self.vector.x)
         msg.twist.linear.y = float(self.vector.y)
         msg.twist.linear.z = float(self.vector.z)
+        msg.twist.angular.z = float(self.vector.rz)
         self.publisher.publish(msg)
 
-    def update(self, x: float, y: float, z: float, g: float = 0) -> None:
-        self.update_vector(x, y, z)
+    def update(self, x: float, y: float, z: float, rz: float, g: float = 0) -> None:
+        self.update_vector(x, y, z, rz)
         self.update_gripper(g)
 
-    def update_vector(self, x: float, y: float, z: float) -> None:
-        self.vector = Vec3(
-            x * self.scale_factor, y * self.scale_factor, z * self.scale_factor
+    def update_vector(self, x: float, y: float, z: float, rz: float) -> None:
+        self.vector = Vec(
+            x * self.scale_factor,
+            y * self.scale_factor,
+            z * self.scale_factor,
+            rz * self.scale_factor,
         )
 
     def update_gripper(self, g: float) -> None:
@@ -71,11 +76,10 @@ class GamepadNode(Node):
 
 
 def main(args: str = None) -> None:
-    """Start the gamepadnode and the (virtual) gamepad in a separate thread."""
     rclpy.init(args=args)
     gamepad_node = GamepadNode()
-    virtual = gamepad_node.get_parameter("virtual").get_parameter_value().bool_value
-    gamepad = VirtualGamepad() if virtual else Gamepad()
+    name = gamepad_node.get_parameter("gamepad").get_parameter_value().string_value
+    gamepad = VirtualGamepad() if name == "virtual" else Gamepad(name)
     gamepad.set_callback(gamepad_node.update)
     Thread(target=gamepad.run, daemon=True).start()
 
