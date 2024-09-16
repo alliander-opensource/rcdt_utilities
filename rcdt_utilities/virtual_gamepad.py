@@ -22,7 +22,6 @@ class VirtualGamepad:
         self.x = 0
         self.y = 0
         self.z = 0
-        self.g = 0
 
     def set_callback(self, callback: Callable) -> None:
         self.callback = callback
@@ -51,25 +50,20 @@ class VirtualGamepad:
         window = dpg.add_window(width=-1, height=-1)
         dpg.set_primary_window(window, True)
 
-        cols = 2
-        rows = 4
-        grid = dpg_grid.Grid(cols, rows, window)
+        rows = 2
+        cols = 3
+        grid = dpg_grid.Grid(rows, cols, window)
         grid.offsets = 8, 8, 8, 8
 
-        labels = ["X+", "Z+", "X-", "Z-", "Y+", "Y-", "G+", "G-"]
-        colors = {
-            "X": (200, 0, 0),
-            "Y": (0, 200, 0),
-            "Z": (0, 0, 200),
-            "G": (200, 200, 200),
-        }
+        labels = ["X+", "X-", "Y+", "Z+", "Z-", "Y-"]
+        colors = {"X": (200, 0, 0), "Y": (0, 200, 0), "Z": (0, 0, 200)}
         row, col = 0, 0
         for label in labels:
             uid = dpg.generate_uuid()
             button = dpg.add_button(parent=window, label=label, tag=uid)
             dpg.bind_item_handler_registry(uid, "handler")
             self.set_color(uid, colors[label[0]])
-            grid.push(button, col, row)
+            grid.push(button, row, col)
             col = col + 1 if col < cols - 1 else 0
             row = row + 1 if col == 0 else row
 
@@ -92,7 +86,7 @@ class VirtualGamepad:
         value = 1 if label[1] == "+" else -1
         value = 0 if not active else value
         setattr(self, axis, value)
-        self.callback(self.x, self.y, self.z, self.g)
+        self.callback(self.x, self.y, self.z)
 
 
 if __name__ == "__main__":
