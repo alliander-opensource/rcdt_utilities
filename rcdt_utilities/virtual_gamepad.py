@@ -8,9 +8,8 @@ import dearpygui.dearpygui as dpg
 import dearpygui_grid as dpg_grid
 
 
-def default_callback(x: float = 0.0, y: float = 0.0, z: float = 0.0) -> None:
-    """Print the input variables."""
-    print(f"x: {x}, y: {y}, z: {z}")
+def default_callback(x: float, y: float, z: float, g: float) -> None:
+    print(x, y, z, g)
 
 
 class VirtualGamepad:
