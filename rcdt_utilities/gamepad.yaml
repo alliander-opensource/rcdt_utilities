@@ -3,9 +3,12 @@ xbox:
   deadzone: 3000
   zero: 0
   mapping:
-    ABS_X": "x"
-    ABS_Y": "y"
-    ABS_RY": "z"
+    ABS_X: "x"
+    ABS_Y: "y"
+    ABS_RY: "z"
+    ABS_RX: "rz"
+    BTN_TR: "gripper_close"
+    BTN_TL: "gripper_open"
 
 stadia:
   axis_max: 128
