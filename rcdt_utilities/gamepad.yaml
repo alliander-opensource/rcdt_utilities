@@ -1,23 +1,51 @@
-xbox:
-  axis_max: 32768
-  deadzone: 3000
-  zero: 0
-  mapping:
-    ABS_X: "x"
-    ABS_Y: "y"
-    ABS_RY: "z"
-    ABS_RX: "rz"
-    BTN_TR: "gripper_close"
-    BTN_TL: "gripper_open"
+Xbox Series X Controller:
+  buttons:
+    4: "gripper_open"
+    5: "gripper_close"
+  axes:
+    1:
+      movement: "linear"
+      direction: "x"
+    0:
+      movement: "linear"
+      direction: "y"
+    4:
+      movement: "linear"
+      direction: "z"
+    3:
+      movement: "angular"
+      direction: "z"
+    5:
+      movement: "angular"
+      direction: "y"
+      sign: "positive"
+    2:
+      movement: "angular"
+      direction: "y"
+      sign: "negative"
 
-stadia:
-  axis_max: 128
-  deadzone: 10
-  zero: 128
-  mapping:
-    ABS_X: "x"
-    ABS_Y: "y"
-    ABS_RZ: "z"
-    ABS_Z: "rz"
-    BTN_TR: "gripper_close"
-    BTN_TL: "gripper_open"
+Google LLC Stadia Controller rev. A:
+  buttons:
+    4: "gripper_open"
+    5: "gripper_close"
+  axes:
+    1:
+      movement: "linear"
+      direction: "x"
+    0:
+      movement: "linear"
+      direction: "y"
+    3:
+      movement: "linear"
+      direction: "z"
+    2:
+      movement: "angular"
+      direction: "z"
+    4:
+      movement: "angular"
+      direction: "y"
+      sign: "positive"
+    5:
+      movement: "angular"
+      direction: "y"
+      sign: "negative"
