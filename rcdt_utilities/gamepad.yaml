@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: Alliander N. V.
+#
+# SPDX-License-Identifier: Apache-2.0
+
 Xbox Series X Controller:
   buttons:
     4: "gripper_open"
