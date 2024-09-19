@@ -11,12 +11,14 @@ from geometry_msgs.msg import TwistStamped
 from franka_msgs.action import Move, Grasp
 from threading import Thread
 from rcdt_utilities.gamepad import Gamepad, GamepadCommand
+from moveit_msgs.srv import ServoCommandType
 
 
 class GamepadNode(Node):
     def __init__(self):
         self.scaler = 0.5
         super().__init__("rcdt_gamepad")
+        self.initialzize_servo_node()
         self.topic = "/servo_node/delta_twist_cmds"
         self.publisher = self.create_publisher(TwistStamped, self.topic, 10)
         self.move_client = ActionClient(self, Move, "/fr3_gripper/move")
@@ -25,6 +27,14 @@ class GamepadNode(Node):
         self.msg.header.frame_id = "fr3_link0"
         self.gripper_state = "close"
         self.timer = self.create_timer(1 / 100.0, self.publish)
+
+    def initialzize_servo_node(self) -> None:
+        client = self.create_client(ServoCommandType, "/servo_node/switch_command_type")
+        while not client.wait_for_service(timeout_sec=10.0):
+            self.get_logger().info("Waiting for servo_node...")
+        request = ServoCommandType.Request()
+        request.command_type = 1
+        client.call_async(request)
 
     def publish(self) -> None:
         self.msg.header.stamp = self.get_clock().now().to_msg()
