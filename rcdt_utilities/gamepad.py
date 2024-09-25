@@ -6,6 +6,8 @@ import os
 import yaml
 import pygame
 from typing import Callable
+from threading import Thread
+from time import sleep
 from dataclasses import dataclass
 import dearpygui.dearpygui as dpg
 import dearpygui_grid as dpg_grid
@@ -18,11 +20,11 @@ class Vec3:
     z: float = 0.0
 
 
-@dataclass
 class GamepadCommand:
-    linear = Vec3()
-    angular = Vec3()
-    gripper = "closed"
+    def __init__(self):
+        self.linear = Vec3()
+        self.angular = Vec3()
+        self.gripper = "closed"
 
 
 def default_callback(command: GamepadCommand) -> None:
@@ -40,9 +42,15 @@ class Gamepad:
         self.callback = default_callback
         self.command = GamepadCommand()
         self.initialize_gamepads()
+        Thread(target=self.callback_caller).start()
 
     def set_callback(self, callback: Callable) -> None:
         self.callback = callback
+
+    def callback_caller(self) -> None:
+        while True:
+            self.callback(self.command)
+            sleep(0.01)
 
     def initialize_gamepads(self) -> None:
         pygame.init()
@@ -79,7 +87,6 @@ class Gamepad:
             self.handle_button(event)
         else:
             return
-        self.callback(self.command)
 
     def handle_button(self, event: dict) -> None:
         joystick: pygame.joystick.JoystickType = self.joysticks[event["joy"]]

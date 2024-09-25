@@ -5,12 +5,16 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import rclpy
+import rclpy.time
 from rclpy.node import Node
 from rclpy.action import ActionClient
 from geometry_msgs.msg import TwistStamped
 from franka_msgs.action import Move, Grasp
 from threading import Thread
-from rcdt_utilities.gamepad import Gamepad, GamepadCommand
+from rcdt_utilities.gamepad import Gamepad, GamepadCommand, Vec3
+
+from tf2_ros.buffer import Buffer
+from tf2_ros.transform_listener import TransformListener
 
 
 class GamepadNode(Node):
@@ -24,24 +28,74 @@ class GamepadNode(Node):
         self.msg = TwistStamped()
         self.msg.header.frame_id = "fr3_link0"
         self.gripper_state = "close"
+        self.init_tf_listener()
+        self.timer = self.create_timer(1 / 10, self.update_position)
         self.timer = self.create_timer(1 / 100.0, self.publish)
 
+    def init_tf_listener(self) -> None:
+        self.tf_buffer = Buffer()
+        self.tf_listener = TransformListener(self.tf_buffer, self)
+        self.goal_position = None
+        self.position = Vec3()
+
+    def update_position(self) -> None:
+        try:
+            transform = self.tf_buffer.lookup_transform(
+                "fr3_link0", "fr3_hand", rclpy.time.Time()
+            )
+            position = transform.transform.translation
+
+        except Exception:
+            return
+
+        for axis in ["x", "y", "z"]:
+            setattr(self.position, axis, getattr(position, axis))
+        if self.goal_position is None:
+            self.goal_position = Vec3()
+            for axis in ["x", "y", "z"]:
+                setattr(self.goal_position, axis, getattr(self.position, axis))
+
     def publish(self) -> None:
+        self.define_error()
         self.msg.header.stamp = self.get_clock().now().to_msg()
         self.publisher.publish(self.msg)
 
+    def define_error(self) -> None:
+        if self.goal_position is None:
+            return
+        for axis in ["x", "y", "z"]:
+            sign = -1 if axis in ["y", "z"] else 1
+            error = getattr(self.goal_position, axis) - getattr(self.position, axis)
+            error *= sign
+            gain_p = 10
+            velocity = float(max(min(gain_p * error, 1), -1))
+            setattr(self.msg.twist.linear, axis, velocity)
+
     def update(self, command: GamepadCommand) -> None:
-        for movement in ["linear", "angular"]:
-            command_vector = getattr(command, movement)
-            message_vector = getattr(self.msg.twist, movement)
-            for axis in ["x", "y", "z"]:
-                value = self.scaler * getattr(command_vector, axis)
-                deadzone = 0.1
-                if abs(value) < deadzone:
-                    value = 0.0
-                setattr(message_vector, axis, value)
+        self.update_linear(command.linear)
+        self.update_angular(command.angular)
         if command.gripper != self.gripper_state:
             self.update_gripper(command.gripper)
+
+    def update_linear(self, command: Vec3) -> None:
+        if self.goal_position is None:
+            return
+        scaler = 0.001
+        for axis in ["x", "y", "z"]:
+            value = getattr(command, axis)
+            deadzone = 0.1
+            if abs(value) < deadzone:
+                value = 0.0
+            new_value = getattr(self.goal_position, axis) + scaler * value
+            setattr(self.goal_position, axis, new_value)
+
+    def update_angular(self, command: Vec3) -> None:
+        for axis in ["x", "y", "z"]:
+            value = self.scaler * getattr(command, axis)
+            deadzone = 0.1
+            if abs(value) < deadzone:
+                value = 0.0
+            setattr(self.msg.twist.angular, axis, value)
 
     def update_gripper(self, command: str) -> None:
         if command == "open":

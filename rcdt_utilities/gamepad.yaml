@@ -41,9 +41,11 @@ Google LLC Stadia Controller rev. A:
     0:
       movement: "linear"
       direction: "y"
+      flip: "true"
     3:
       movement: "linear"
       direction: "z"
+      flip: "true"
     2:
       movement: "angular"
       direction: "z"
