@@ -102,12 +102,14 @@ class Gamepad:
             return
         movement, direction = axes[axis]["movement"], axes[axis]["direction"]
         vector = getattr(self.command, movement)
-        value = -event["value"]
+        value = event["value"]
+        if "flip" in axes[axis] and axes[axis]["flip"] == "true":
+            value *= -1
         if "sign" in axes[axis]:
             if axes[axis]["sign"] == "positive":
-                value = (value - 1) / 2
+                value = (value + 1) / 2
             elif axes[axis]["sign"] == "negative":
-                value = -(value - 1) / 2
+                value = -(value + 1) / 2
         setattr(vector, direction, value)
 
 
