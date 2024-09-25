@@ -10,6 +10,7 @@ Xbox Series X Controller:
     1:
       movement: "linear"
       direction: "x"
+      flip: "true"
     0:
       movement: "linear"
       direction: "y"
@@ -36,6 +37,7 @@ Google LLC Stadia Controller rev. A:
     1:
       movement: "linear"
       direction: "x"
+      flip: "true"
     0:
       movement: "linear"
       direction: "y"
