@@ -54,6 +54,8 @@ class GamepadNode(Node):
             goal = Grasp.Goal()
             goal.width = 0.0
             goal.speed = 0.03
+            goal.epsilon.inner = 0.08
+            goal.epsilon.outer = 0.08
             goal.force = 100.0
         else:
             return
