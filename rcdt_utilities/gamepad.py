@@ -152,12 +152,12 @@ class VirtualGamepad:
         dpg.set_primary_window(window, True)
 
         cols = 2
-        rows = 6
+        rows = 7
         grid = dpg_grid.Grid(cols, rows, window)
         grid.offsets = 8, 8, 8, 8
 
-        linear_buttons = ["X+", "Z+", "X-", "Z-", "Y+", "Y-"]
-        other_buttons = ["G-", "G+", "Z+r", "Z-r", "Y+r", "Y-r"]
+        linear_buttons = ["X+", "Z-", "X-", "Z+", "Y-", "Y+"]
+        other_buttons = ["G-", "G+", "Z-r", "Z+r", "Y-r", "Y+r", "X-r", "X+r"]
         labels = linear_buttons + other_buttons
         colors = {
             "X": (200, 0, 0),
