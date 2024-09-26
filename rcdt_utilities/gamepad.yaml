@@ -22,11 +22,11 @@ Xbox Series X Controller:
       direction: "z"
     5:
       movement: "angular"
-      direction: "y"
+      direction: "selected"
       sign: "positive"
     2:
       movement: "angular"
-      direction: "y"
+      direction: "selected"
       sign: "negative"
 
 Google LLC Stadia Controller rev. A:
@@ -49,9 +49,9 @@ Google LLC Stadia Controller rev. A:
       direction: "z"
     4:
       movement: "angular"
-      direction: "y"
+      direction: "selected"
       sign: "positive"
     5:
       movement: "angular"
-      direction: "y"
+      direction: "selected"
       sign: "negative"

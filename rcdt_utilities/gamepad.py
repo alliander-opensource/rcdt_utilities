@@ -39,6 +39,7 @@ class Gamepad:
     def __init__(self):
         self.callback = default_callback
         self.command = GamepadCommand()
+        self.selected_direction = "y"
         self.initialize_gamepads()
 
     def set_callback(self, callback: Callable) -> None:
@@ -77,9 +78,19 @@ class Gamepad:
             self.handle_axis(event)
         elif "button" in event:
             self.handle_button(event)
+        elif "hat" in event:
+            self.handle_hat(event)
         else:
             return
         self.callback(self.command)
+
+    def handle_hat(self, event: dict) -> None:
+        if abs(event["value"][0]):
+            self.selected_direction = "x"
+            self.command.angular.y = 0
+        elif abs(event["value"][1]):
+            self.selected_direction = "y"
+            self.command.angular.x = 0
 
     def handle_button(self, event: dict) -> None:
         joystick: pygame.joystick.JoystickType = self.joysticks[event["joy"]]
@@ -101,6 +112,7 @@ class Gamepad:
         if axis not in axes:
             return
         movement, direction = axes[axis]["movement"], axes[axis]["direction"]
+        direction = self.selected_direction if direction == "selected" else direction
         vector = getattr(self.command, movement)
         value = event["value"]
         if "flip" in axes[axis] and axes[axis]["flip"] == "true":
