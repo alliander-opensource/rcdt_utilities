@@ -60,8 +60,13 @@ class GamepadNode(Node):
         else:
             return
         client.wait_for_server()
-        if client.send_goal_async(goal):
+        result: (
+            Move.Impl.GetResultService.Response | Grasp.Impl.GetResultService.Response
+        ) = client.send_goal(goal)
+        if result.result.success:
             self.gripper_state = command
+        else:
+            self.get_logger().warn("Gripper move did not succeed.")
 
 
 def main(args: str = None) -> None:
