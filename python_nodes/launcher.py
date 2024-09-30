@@ -6,19 +6,29 @@
 
 
 import psutil
+from typing import Dict
 from os import listdir
-from importlib.util import spec_from_file_location, module_from_spec
 import dearpygui.dearpygui as dpg
 from subprocess import Popen, check_output
 from threading import Thread
 from time import sleep
-from rcdt_utilities.launch_utils import LaunchArguments, get_package_path, get_file_path
+from rcdt_utilities.launch_utils import get_package_path
+
+
+class Arg:
+    def __init__(self) -> None:
+        self.name = None
+        self.value = None
+        self.choices = None
+
+    def set_value(self, value) -> None:
+        self.value = value
 
 
 class Launcher:
     def __init__(self) -> None:
         self.widgets = {}
-        self.ARGS = LaunchArguments()
+        self.args: Dict[str, Arg] = {}
         self.create_window()
         self.create_launch_file_selector()
         self.create_buttons()
@@ -79,19 +89,18 @@ class Launcher:
     def fill_launch_options_selector(self) -> None:
         uid = self.widgets["launch_options"]
         dpg.delete_item(uid, children_only=True)
-        for name, value in self.ARGS.all_values().items():
-            options = self.ARGS.get_options(name)
+        for arg in self.args.values():
             group = dpg.add_group(parent=uid, horizontal=True)
-            dpg.add_text(parent=group, default_value=name)
+            dpg.add_text(parent=group, default_value=arg.name)
             (
                 dpg.add_radio_button(
                     parent=group,
-                    label=name,
-                    items=options,
-                    default_value=value,
+                    label=arg.name,
+                    items=arg.choices,
+                    default_value=arg.value,
                     horizontal=True,
-                    callback=lambda item: self.ARGS.set_value(
-                        dpg.get_item_label(item), dpg.get_value(item)
+                    callback=lambda item: self.args[dpg.get_item_label(item)].set_value(
+                        dpg.get_value(item)
                     ),
                 ),
             )
@@ -103,19 +112,38 @@ class Launcher:
 
     def get_args_from_launch_file(self) -> None:
         self.package = "rcdt_franka"
-        file_path = get_file_path(self.package, ["launch"], self.launch_file)
-        spec = spec_from_file_location("launch_file", file_path)
-        module = module_from_spec(spec)
-        spec.loader.exec_module(module)
-        if hasattr(module, "ARGS"):
-            self.ARGS = module.ARGS
-        else:
-            self.ARGS = LaunchArguments()
+        cmd_result = check_output(
+            ["ros2", "launch", self.package, self.launch_file, "-s"]
+        ).decode("utf-8")
+        spaces_removed = cmd_result.replace(" ", "")
+        colons_removed = spaces_removed.replace(":", "")
+        string_list = colons_removed.split("\n")[1:]
+        string_list = [string for string in string_list if string != ""]
+        n = 0
+        n_max = 2
+        arg = Arg()
+        for string in string_list:
+            match n:
+                case 0:
+                    name = eval(string)
+                    arg.name = name
+                case 1:
+                    choices = eval(string.replace("Oneof", ""))
+                    arg.choices = choices
+                case 2:
+                    value = eval(string.replace("default", ""))
+                    arg.value = value
+            if n == n_max:
+                self.args[arg.name] = arg
+                arg = Arg()
+                n = 0
+            else:
+                n += 1
 
     def launch_command(self) -> str:
         command = f"ros2 launch {self.package} {self.launch_file}"
-        for name, value in self.ARGS.all_values().items():
-            command += f" {name}:='{value }'"
+        for arg in self.args.values():
+            command += f" {arg.name}:='{arg.value}'"
         return command
 
     def start(self) -> None:
