@@ -21,7 +21,7 @@ class Arg:
         self.value = None
         self.choices = None
 
-    def set_value(self, value) -> None:
+    def set_value(self, value: str) -> None:
         self.value = value
 
 
