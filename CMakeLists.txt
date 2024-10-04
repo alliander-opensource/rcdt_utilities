@@ -11,6 +11,13 @@ find_package(ament_cmake REQUIRED)
 # Install Python modules
 ament_python_install_package(${PROJECT_NAME})
 
+# Install project launch files
+install(
+  DIRECTORY
+    launch rviz
+  DESTINATION share/${PROJECT_NAME}
+)
+
 # Install Python executables
 install(PROGRAMS
   python_nodes/gamepad_node.py

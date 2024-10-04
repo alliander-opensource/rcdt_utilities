@@ -23,6 +23,7 @@ class GamepadCommand:
     linear = Vec3()
     angular = Vec3()
     gripper = "closed"
+    selected = "none"
 
 
 def default_callback(command: GamepadCommand) -> None:
@@ -99,10 +100,17 @@ class Gamepad:
         button = event["button"]
         if button not in buttons:
             return
-        if buttons[button] == "gripper_open":
-            self.command.gripper = "open"
-        elif buttons[button] == "gripper_close":
-            self.command.gripper = "close"
+        match buttons[button]:
+            case "gripper_open":
+                self.command.gripper = "open"
+            case "gripper_close":
+                self.command.gripper = "close"
+            case "a_button":
+                self.command.selected = "arm"
+            case "b_button":
+                self.command.selected = "base"
+            case "x_button":
+                self.command.selected = "none"
 
     def handle_axis(self, event: dict) -> None:
         joystick: pygame.joystick.JoystickType = self.joysticks[event["joy"]]

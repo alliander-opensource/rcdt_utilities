@@ -33,6 +33,9 @@ Google LLC Stadia Controller rev. A:
   buttons:
     4: "gripper_open"
     5: "gripper_close"
+    0: "a_button"
+    1: "b_button"
+    2: "x_button"
   axes:
     1:
       movement: "linear"
@@ -47,6 +50,7 @@ Google LLC Stadia Controller rev. A:
     2:
       movement: "angular"
       direction: "z"
+      flip: "true"
     4:
       movement: "angular"
       direction: "selected"
