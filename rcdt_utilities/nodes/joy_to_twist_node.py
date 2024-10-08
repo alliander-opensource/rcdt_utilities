@@ -14,11 +14,17 @@ from rcdt_utilities.launch_utils import get_yaml, get_file_path
 class JoyToTwistNode(Node):
     def __init__(self) -> bool:
         super().__init__("joy_to_twist_node")
+        self.declare_parameter("sub_topic", value="/joy")
         self.declare_parameter("pub_topic", "")
         self.declare_parameter("config_pkg", "")
 
+        sub_topic = self.get_parameter("sub_topic").get_parameter_value().string_value
         pub_topic = self.get_parameter("pub_topic").get_parameter_value().string_value
         config_pkg = self.get_parameter("config_pkg").get_parameter_value().string_value
+
+        if sub_topic == "":
+            self.get_logger().warn("No subscriber topic was specified. Exiting.")
+            return
 
         if pub_topic == "":
             self.get_logger().warn("No publisher topic was specified. Exiting.")
@@ -35,7 +41,7 @@ class JoyToTwistNode(Node):
             self.get_logger().warn(f"No mapping was found in {config}. Exiting.")
             return
 
-        self.create_subscription(Joy, "/joy", self.handle_input, 10)
+        self.create_subscription(Joy, sub_topic, self.handle_input, 10)
         self.pub = self.create_publisher(TwistStamped, pub_topic, 10)
         self.profile = "A"
         self.run()
