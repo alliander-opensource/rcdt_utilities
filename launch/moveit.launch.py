@@ -47,17 +47,11 @@ def launch_setup(context: LaunchContext) -> None:
         ],
     )
 
-    gamepad = Node(
-        package="rcdt_utilities",
-        executable="gamepad_node.py",
-    )
-
     skip = LaunchDescriptionEntity()
     return [
         moveit_classic if moveit_arg.value(context) == "classic" else skip,
         static_transform_publisher if moveit_arg.value(context) == "classic" else skip,
         moveit_servo if moveit_arg.value(context) == "servo" else skip,
-        gamepad if moveit_arg.value(context) == "servo" else skip,
     ]
 
 

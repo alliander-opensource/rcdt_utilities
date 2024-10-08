@@ -20,8 +20,7 @@ install(
 
 # Install Python executables
 install(PROGRAMS
-  python_nodes/gamepad_node.py
-  python_nodes/launcher.py
+  python_nodes/joy_to_twist_node.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

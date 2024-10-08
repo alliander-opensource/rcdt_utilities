@@ -34,7 +34,7 @@ class LaunchArgument:
         try:
             return ast.literal_eval(string_value)
         except Exception:
-            return self.configuration.perform(context)
+            return string_value
 
 
 def get_package_path(package: str) -> str:
