@@ -20,7 +20,7 @@ install(
 
 # Install Python executables
 install(PROGRAMS
-  python_nodes/joy_to_twist_node.py
+  nodes/joy_to_twist_node.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
