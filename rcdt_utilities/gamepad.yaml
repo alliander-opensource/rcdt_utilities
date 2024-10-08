@@ -6,6 +6,9 @@ Xbox Series X Controller:
   buttons:
     4: "gripper_open"
     5: "gripper_close"
+    0: "a_button"
+    1: "b_button"
+    2: "x_button"
   axes:
     1:
       movement: "linear"
@@ -20,6 +23,7 @@ Xbox Series X Controller:
     3:
       movement: "angular"
       direction: "z"
+      flip: "true"
     5:
       movement: "angular"
       direction: "selected"
