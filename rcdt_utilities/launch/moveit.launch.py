@@ -12,12 +12,11 @@ from rcdt_utilities.launch_utils import (
     get_moveit_parameters,
 )
 
-servo_config = get_yaml(get_file_path("rcdt_franka", ["config"], "servo_params.yaml"))
-
 moveit_arg = LaunchArgument("moveit", "off", ["classic", "servo", "off"])
 moveit_config_package_arg = LaunchArgument(
     "moveit_config_package", "rcdt_franka_moveit_config"
 )
+servo_params_package_arg = LaunchArgument("servo_params_package", "rcdt_franka")
 
 
 def launch_setup(context: LaunchContext) -> None:
@@ -37,6 +36,9 @@ def launch_setup(context: LaunchContext) -> None:
         arguments=["--frame-id", "world", "--child-frame-id", "base"],
     )
 
+    servo_params_package = servo_params_package_arg.value(context)
+    file = get_file_path(servo_params_package, ["config"], "servo_params.yaml")
+    servo_config = get_yaml(file)
     servo_params = {"moveit_servo": servo_config}
     moveit_servo = Node(
         package="moveit_servo",
@@ -47,17 +49,11 @@ def launch_setup(context: LaunchContext) -> None:
         ],
     )
 
-    gamepad = Node(
-        package="rcdt_utilities",
-        executable="gamepad_node.py",
-    )
-
     skip = LaunchDescriptionEntity()
     return [
         moveit_classic if moveit_arg.value(context) == "classic" else skip,
         static_transform_publisher if moveit_arg.value(context) == "classic" else skip,
         moveit_servo if moveit_arg.value(context) == "servo" else skip,
-        gamepad if moveit_arg.value(context) == "servo" else skip,
     ]
 
 
@@ -66,6 +62,7 @@ def generate_launch_description() -> LaunchDescription:
         [
             moveit_arg.declaration,
             moveit_config_package_arg.declaration,
+            servo_params_package_arg.declaration,
             OpaqueFunction(function=launch_setup),
         ]
     )

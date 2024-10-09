@@ -7,23 +7,23 @@ cmake_minimum_required(VERSION 3.5)
 project(rcdt_utilities)
 
 find_package(ament_cmake REQUIRED)
+find_package(ament_cmake_python REQUIRED)
 
-# Install Python modules
-ament_python_install_package(${PROJECT_NAME})
-
-# Install project launch files
+# Install project files
 install(
   DIRECTORY
-    launch rviz
+  launch rviz
   DESTINATION share/${PROJECT_NAME}
 )
 
-# Install Python executables
+# Install nodes
 install(PROGRAMS
-  python_nodes/gamepad_node.py
-  python_nodes/launcher.py
+  nodes/joy_to_twist_node.py
   DESTINATION lib/${PROJECT_NAME}
 )
+
+# Install python package
+ament_python_install_package(${PROJECT_NAME})
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
