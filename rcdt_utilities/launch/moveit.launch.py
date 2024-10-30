@@ -5,9 +5,10 @@
 from launch import LaunchDescription, LaunchContext, LaunchDescriptionEntity
 from launch.actions import OpaqueFunction, ExecuteProcess
 from launch_ros.actions import Node
-from rcdt_utilities.launch_utils import LaunchArgument, get_yaml, get_file_path
+from rcdt_utilities_py.launch_utils import LaunchArgument, get_yaml, get_file_path
 from moveit_configs_utils import MoveItConfigsBuilder
 
+sim_launch_arg = LaunchArgument("simulation", True, [True, False])
 moveit_launch_arg = LaunchArgument("moveit", "off", ["node", "rviz", "servo", "off"])
 moveit_config_package_arg = LaunchArgument(
     "moveit_config_package", "rcdt_franka_moveit_config"
@@ -16,6 +17,7 @@ servo_params_package_arg = LaunchArgument("servo_params_package", "rcdt_franka")
 
 
 def launch_setup(context: LaunchContext) -> None:
+    use_sim = sim_launch_arg.value(context)
     moveit_arg = moveit_launch_arg.value(context)
     config_package = moveit_config_package_arg.value(context)
 
@@ -41,8 +43,8 @@ def launch_setup(context: LaunchContext) -> None:
     # Moveit as node:
     moveit_node = Node(
         package="rcdt_utilities",
-        executable="moveit_controller_node.py",
-        parameters=[moveit_config, {"use_sim_time": True}],
+        executable="moveit_action_server_node.py",
+        parameters=[moveit_config, {"use_sim_time": use_sim}],
     )
 
     # Moveit in rviz:

@@ -8,7 +8,7 @@ import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Joy
 from geometry_msgs.msg import TwistStamped
-from rcdt_utilities.launch_utils import get_yaml, get_file_path
+from rcdt_utilities_py.launch_utils import get_yaml, get_file_path
 
 
 class JoyToTwistNode(Node):

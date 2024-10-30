@@ -5,7 +5,7 @@
 from launch import LaunchDescription, LaunchContext
 from launch.actions import OpaqueFunction
 from launch_ros.actions import Node
-from rcdt_utilities.launch_utils import LaunchArgument, get_file_path
+from rcdt_utilities_py.launch_utils import LaunchArgument, get_file_path
 
 display_config_general = get_file_path("rcdt_utilities", ["rviz"], "general.rviz")
 
