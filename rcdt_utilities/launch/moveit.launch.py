@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from launch import LaunchDescription, LaunchContext, LaunchDescriptionEntity
-from launch.actions import OpaqueFunction
+from launch.actions import OpaqueFunction, ExecuteProcess
 from launch_ros.actions import Node
 from rcdt_utilities.launch_utils import (
     LaunchArgument,
@@ -42,18 +42,31 @@ def launch_setup(context: LaunchContext) -> None:
     servo_params = {"moveit_servo": servo_config}
     moveit_servo = Node(
         package="moveit_servo",
-        executable="servo_node_main",
+        executable="servo_node",
         parameters=[
             servo_params,
             moveit_config,
         ],
     )
 
+    set_servo_command_type = ExecuteProcess(
+        cmd=[
+            [
+                "ros2 service call ",
+                "/servo_node/switch_command_type ",
+                "moveit_msgs/srv/ServoCommandType ",
+                "'{command_type: 1}'",
+            ]
+        ],
+        shell=True,
+    )
+
     skip = LaunchDescriptionEntity()
     return [
         moveit_classic if moveit_arg.value(context) == "classic" else skip,
-        static_transform_publisher if moveit_arg.value(context) == "classic" else skip,
+        static_transform_publisher if moveit_arg.value(context) != "off" else skip,
         moveit_servo if moveit_arg.value(context) == "servo" else skip,
+        set_servo_command_type if moveit_arg.value(context) == "servo" else skip,
     ]
 
 

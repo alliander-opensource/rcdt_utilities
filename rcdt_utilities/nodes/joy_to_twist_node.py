@@ -14,13 +14,15 @@ from rcdt_utilities.launch_utils import get_yaml, get_file_path
 class JoyToTwistNode(Node):
     def __init__(self) -> bool:
         super().__init__("joy_to_twist_node")
-        self.declare_parameter("sub_topic", value="/joy")
+        self.declare_parameter("sub_topic", "/joy")
         self.declare_parameter("pub_topic", "")
         self.declare_parameter("config_pkg", "")
+        self.declare_parameter("pub_frame", "")
 
         sub_topic = self.get_parameter("sub_topic").get_parameter_value().string_value
         pub_topic = self.get_parameter("pub_topic").get_parameter_value().string_value
         config_pkg = self.get_parameter("config_pkg").get_parameter_value().string_value
+        pub_frame = self.get_parameter("pub_frame").get_parameter_value().string_value
 
         if sub_topic == "":
             self.get_logger().warn("No subscriber topic was specified. Exiting.")
@@ -43,6 +45,8 @@ class JoyToTwistNode(Node):
 
         self.create_subscription(Joy, sub_topic, self.handle_input, 10)
         self.pub = self.create_publisher(TwistStamped, pub_topic, 10)
+        self.pub_msg = TwistStamped()
+        self.pub_msg.header.frame_id = pub_frame
         self.profile = "A"
         self.run()
 
@@ -50,7 +54,6 @@ class JoyToTwistNode(Node):
         rclpy.spin(self)
 
     def handle_input(self, sub_msg: Joy) -> None:
-        pub_msg = TwistStamped()
         for idx in range(len(sub_msg.axes)):
             value = sub_msg.axes[idx]
             if idx not in self.mapping["axes"]:
@@ -70,10 +73,10 @@ class JoyToTwistNode(Node):
                     continue
                 value *= -1 if config.get("flip", False) else 1
                 direction = config["direction"]
-                vector = getattr(pub_msg.twist, movement)
+                vector = getattr(self.pub_msg.twist, movement)
                 setattr(vector, direction, value)
-        pub_msg.header.stamp = self.get_clock().now().to_msg()
-        self.pub.publish(pub_msg)
+        self.pub_msg.header.stamp = self.get_clock().now().to_msg()
+        self.pub.publish(self.pub_msg)
 
 
 def main(args: str = None) -> None:
