@@ -43,7 +43,7 @@ def launch_setup(context: LaunchContext) -> None:
     # Moveit as node:
     moveit_node = Node(
         package="rcdt_utilities",
-        executable="moveit_action_server_node.py",
+        executable="moveit_controller_node.py",
         parameters=[moveit_config, {"use_sim_time": use_sim}],
     )
 

@@ -10,10 +10,11 @@ from rcdt_utilities_py.launch_utils import LaunchArgument, get_file_path
 display_config_general = get_file_path("rcdt_utilities", ["rviz"], "general.rviz")
 
 rviz_frame_arg = LaunchArgument("rviz_frame", "")
+rviz_display_config = LaunchArgument("rviz_display_config", display_config_general)
 
 
 def launch_setup(context: LaunchContext) -> None:
-    arguments = ["--display-config", display_config_general]
+    arguments = ["--display-config", rviz_display_config.value(context)]
 
     rviz_frame = rviz_frame_arg.value(context)
     if rviz_frame != "":
@@ -32,6 +33,7 @@ def generate_launch_description() -> LaunchDescription:
     return LaunchDescription(
         [
             rviz_frame_arg.declaration,
+            rviz_display_config.declaration,
             OpaqueFunction(function=launch_setup),
         ]
     )

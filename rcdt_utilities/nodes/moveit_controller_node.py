@@ -10,20 +10,32 @@ import rclpy
 from rclpy.node import Node
 from rclpy.action import ActionServer
 from rclpy.action.server import ServerGoalHandle
+from rclpy.executors import MultiThreadedExecutor
 
 from moveit.planning import MoveItPy, PlanningComponent
 from moveit.core.robot_state import RobotState
 from moveit.core.robot_model import RobotModel, JointModelGroup
 from moveit.core.planning_interface import MotionPlanResponse
-from rcdt_utilities.action import Moveit
+from rcdt_utilities_msgs.action import Moveit
+from rcdt_utilities_msgs.srv import AddMarker
 
 from geometry_msgs.msg import PoseStamped
+from std_srvs.srv import Trigger
+
+
+class MoveitControllerClient(Node):
+    def __init__(self) -> None:
+        super().__init__("moveit_controller_client")
+        self.add_marker = self.create_client(AddMarker, "rviz_controller/add_marker")
+        self.clear_markers = self.create_client(Trigger, "rviz_controller/clear_all")
 
 
 class MoveitControllerNode(Node):
-    def __init__(self, group: str) -> None:
-        name = "moveit_action_server"
+    def __init__(self, group: str, client: MoveitControllerClient) -> None:
+        name = "moveit_controller"
         super().__init__(name)
+
+        self.client = client
 
         self.robot = MoveItPy(node_name="moveit_py")
         robot_model: RobotModel = self.robot.get_robot_model()
@@ -43,8 +55,7 @@ class MoveitControllerNode(Node):
         self.links: List[str] = joint_model_group.link_model_names
         self.planner: PlanningComponent = self.robot.get_planning_component(group)
 
-        self.action_server = ActionServer(self, Moveit, name, self.callback)
-        rclpy.spin(self)
+        self.server = ActionServer(self, Moveit, name, self.callback)
 
     def update_state(self) -> None:
         self.planner.set_start_state_to_current_state()
@@ -67,6 +78,19 @@ class MoveitControllerNode(Node):
 
         return result
 
+    def mark_pose(self, pose: PoseStamped) -> None:
+        if not (
+            self.client.clear_markers.wait_for_service(1)
+            and self.client.add_marker.wait_for_service(1)
+        ):
+            self.get_logger().warn("Rviz services not available, marking pose skipped.")
+            return
+        request = Trigger.Request()
+        self.client.clear_markers.call(request)
+        request = AddMarker.Request()
+        request.marker_pose = pose
+        self.client.add_marker.call(request)
+
     def plan_and_execute(self) -> bool:
         plan: MotionPlanResponse = self.planner.plan()
         if not plan:
@@ -76,20 +100,29 @@ class MoveitControllerNode(Node):
         self.robot.execute(plan.trajectory, controllers=[])
         return True
 
-    def move_to_pose(self, goal: PoseStamped) -> bool:
-        if goal.header.frame_id not in self.links:
+    def move_to_pose(self, pose: PoseStamped) -> bool:
+        if pose.header.frame_id not in self.links:
             self.get_logger().error(
-                f"frame_id '{goal.header.frame_id}' not one of links: {self.links}"
+                f"frame_id '{pose.header.frame_id}' not one of links: {self.links}"
             )
             return False
-        self.planner.set_goal_state(pose_stamped_msg=goal, pose_link=self.ee_link)
+        self.planner.set_goal_state(pose_stamped_msg=pose, pose_link=self.ee_link)
 
+        self.mark_pose(pose)
         return self.plan_and_execute()
 
 
 def main(args: str = None) -> None:
     rclpy.init(args=args)
-    MoveitControllerNode("fr3_arm")
+    executor = MultiThreadedExecutor()
+
+    moveit_controller_client = MoveitControllerClient()
+    executor.add_node(moveit_controller_client)
+
+    moveit_controller = MoveitControllerNode("fr3_arm", moveit_controller_client)
+    executor.add_node(moveit_controller)
+
+    executor.spin()
     rclpy.shutdown()
 
 
