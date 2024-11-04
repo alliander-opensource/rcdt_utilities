@@ -18,9 +18,12 @@ SPDX-License-Identifier: Apache-2.0
   <buildtool_depend>ament_cmake_python</buildtool_depend>
 
   <buildtool_depend>rosidl_default_generators</buildtool_depend>
-  <member_of_group>rosidl_interface_packages</member_of_group>
 
+  <depend>rclcpp</depend>
+  <depend>std_srvs</depend>
   <depend>rcdt_utilities_msgs</depend>
+  <depend>rviz_visual_tools</depend>
+  <depend>tf2_eigen</depend>
 
   <test_depend>ament_lint_auto</test_depend>
 

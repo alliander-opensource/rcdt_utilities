@@ -9,11 +9,8 @@ project(rcdt_utilities)
 find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_python REQUIRED)
 find_package(rclcpp REQUIRED)
-find_package(rosidl_default_generators REQUIRED)
 
-find_package(std_msgs REQUIRED)
 find_package(std_srvs REQUIRED)
-find_package(geometry_msgs REQUIRED)
 find_package(rcdt_utilities_msgs REQUIRED)
 
 find_package(rviz_visual_tools REQUIRED)
