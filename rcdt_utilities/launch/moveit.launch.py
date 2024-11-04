@@ -32,14 +32,6 @@ def launch_setup(context: LaunchContext) -> None:
         )
     moveit_config = moveit_config.to_dict()
 
-    # Create link between world and base:
-    static_transform_publisher = Node(
-        package="tf2_ros",
-        executable="static_transform_publisher",
-        name="static_tf_world_base",
-        arguments=["--frame-id", "world", "--child-frame-id", "base"],
-    )
-
     # Moveit as node:
     moveit_node = Node(
         package="rcdt_utilities",
@@ -90,7 +82,6 @@ def launch_setup(context: LaunchContext) -> None:
 
     skip = LaunchDescriptionEntity()
     return [
-        static_transform_publisher if moveit_arg != "off" else skip,
         moveit_node if moveit_arg == "node" else skip,
         moveit_rivz if moveit_arg == "rviz" else skip,
         rviz if moveit_arg == "rviz" else skip,
