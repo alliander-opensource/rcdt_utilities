@@ -5,7 +5,7 @@
 from launch.actions import IncludeLaunchDescription
 from launch import LaunchDescription
 from launch_ros.actions import Node
-from rcdt_utilities_py.launch_utils import get_file_path
+from rcdt_utilities.launch_utils import get_file_path
 
 gazebo = IncludeLaunchDescription(
     get_file_path("ros_gz_sim", ["launch"], "gz_sim.launch.py"),

@@ -5,7 +5,7 @@
 from launch import LaunchDescription, LaunchContext, LaunchDescriptionEntity
 from launch.actions import OpaqueFunction, ExecuteProcess
 from launch_ros.actions import Node
-from rcdt_utilities_py.launch_utils import LaunchArgument, get_yaml, get_file_path
+from rcdt_utilities.launch_utils import LaunchArgument, get_yaml, get_file_path
 from moveit_configs_utils import MoveItConfigsBuilder
 
 sim_launch_arg = LaunchArgument("simulation", True, [True, False])
