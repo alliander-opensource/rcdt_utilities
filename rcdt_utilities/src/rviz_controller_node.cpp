@@ -1,3 +1,7 @@
+// # SPDX-FileCopyrightText: Alliander N. V.
+//
+// # SPDX-License-Identifier: Apache-2.0
+
 #include "rclcpp/rclcpp.hpp"
 #include "rviz_visual_tools/rviz_visual_tools.hpp"
 #include "rcdt_utilities_msgs/srv/add_marker.hpp"
