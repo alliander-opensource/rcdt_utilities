@@ -9,7 +9,7 @@ from rcdt_utilities.launch_utils import LaunchArgument, get_file_path
 
 display_config_general = get_file_path("rcdt_utilities", ["rviz"], "general.rviz")
 
-rviz_frame_arg = LaunchArgument("rviz_frame", "")
+rviz_frame_arg = LaunchArgument("rviz_frame", "world")
 rviz_display_config = LaunchArgument("rviz_display_config", display_config_general)
 
 
