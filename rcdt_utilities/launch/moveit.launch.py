@@ -8,8 +8,10 @@ from launch_ros.actions import Node
 from rcdt_utilities.launch_utils import LaunchArgument, get_yaml, get_file_path
 from moveit_configs_utils import MoveItConfigsBuilder
 
-sim_launch_arg = LaunchArgument("simulation", True, [True, False])
-moveit_launch_arg = LaunchArgument("moveit", "off", ["node", "rviz", "servo", "off"])
+SKIP = LaunchDescriptionEntity()
+
+use_sim_arg = LaunchArgument("simulation", True, [True, False])
+moveit_mode_arg = LaunchArgument("moveit", "off", ["node", "rviz", "servo", "off"])
 moveit_config_package_arg = LaunchArgument(
     "moveit_config_package", "rcdt_franka_moveit_config"
 )
@@ -17,13 +19,14 @@ servo_params_package_arg = LaunchArgument("servo_params_package", "rcdt_franka")
 
 
 def launch_setup(context: LaunchContext) -> None:
-    use_sim = sim_launch_arg.value(context)
-    moveit_arg = moveit_launch_arg.value(context)
+    use_sim = use_sim_arg.value(context)
+    moveit_mode = moveit_mode_arg.value(context)
     config_package = moveit_config_package_arg.value(context)
+    servo_params_package = servo_params_package_arg.value(context)
 
     # Create moveit config dictionary:
     moveit_config = MoveItConfigsBuilder(robot_name="fr3", package_name=config_package)
-    if moveit_launch_arg.value(context) == "node":
+    if moveit_mode == "node":
         moveit_config.trajectory_execution(
             get_file_path(config_package, ["config"], "moveit_controllers.yaml")
         )
@@ -40,7 +43,7 @@ def launch_setup(context: LaunchContext) -> None:
     )
 
     # Moveit in rviz:
-    moveit_rivz = Node(
+    moveit_rviz = Node(
         package="moveit_ros_move_group",
         executable="move_group",
         parameters=[moveit_config],
@@ -55,7 +58,6 @@ def launch_setup(context: LaunchContext) -> None:
     )
 
     # Moveit servo:
-    servo_params_package = servo_params_package_arg.value(context)
     file = get_file_path(servo_params_package, ["config"], "servo_params.yaml")
     servo_config = get_yaml(file)
     servo_params = {"moveit_servo": servo_config}
@@ -80,20 +82,26 @@ def launch_setup(context: LaunchContext) -> None:
         shell=True,
     )
 
-    skip = LaunchDescriptionEntity()
+    # Select moveit:
+    moveit_selector = {
+        "node": moveit_node,
+        "rviz": moveit_rviz,
+        "servo": moveit_servo,
+        "off": SKIP,
+    }
+    moveit = moveit_selector[moveit_mode]
+
     return [
-        moveit_node if moveit_arg == "node" else skip,
-        moveit_rivz if moveit_arg == "rviz" else skip,
-        rviz if moveit_arg == "rviz" else skip,
-        moveit_servo if moveit_arg == "servo" else skip,
-        set_servo_command_type if moveit_arg == "servo" else skip,
+        moveit,
+        rviz if moveit_mode == "rviz" else SKIP,
+        set_servo_command_type if moveit_mode == "servo" else SKIP,
     ]
 
 
 def generate_launch_description() -> LaunchDescription:
     return LaunchDescription(
         [
-            moveit_launch_arg.declaration,
+            moveit_mode_arg.declaration,
             moveit_config_package_arg.declaration,
             servo_params_package_arg.declaration,
             OpaqueFunction(function=launch_setup),
