@@ -29,7 +29,7 @@ def launch_setup(context: LaunchContext) -> List:
         package="ros_gz_bridge",
         executable="parameter_bridge",
         name="sync_clock",
-        arguments=["/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock"],
+        arguments=["/clock@rosgraph_msgs/msg/Clock[ignition.msgs.Clock"],
     )
     return [gazebo, spawn_robot, sync_clock]
 
