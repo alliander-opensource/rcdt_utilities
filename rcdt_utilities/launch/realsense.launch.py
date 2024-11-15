@@ -6,16 +6,14 @@
 import os
 from pathlib import Path
 
-from launch import LaunchDescription, LaunchContext
+from ament_index_python.packages import get_package_share_directory
+from launch import LaunchContext, LaunchDescription
 from launch.actions import (
-    OpaqueFunction,
     IncludeLaunchDescription,
+    OpaqueFunction,
     SetEnvironmentVariable,
 )
 from launch_ros.actions import Node, SetParameter
-
-from ament_index_python.packages import get_package_share_directory
-
 from rcdt_utilities.launch_utils import (
     get_file_path,
     get_robot_description,
