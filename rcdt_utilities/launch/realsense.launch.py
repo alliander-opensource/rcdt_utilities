@@ -60,10 +60,6 @@ def launch_setup(_context: LaunchContext) -> None:
         output="screen",
     )
 
-    # sensor_msgs/msg/PointCloud2
-
-    # ignition::msgs::PointCloudPacked
-
     depth_bridge = Node(
         package="ros_gz_bridge",
         executable="parameter_bridge",
