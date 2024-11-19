@@ -41,9 +41,10 @@ def launch_setup(context: LaunchContext) -> List:
     if use_realsense:
         bridge_topics.extend(
             [
-                "/camera/color/image_raw@sensor_msgs/msg/Image@gz.msgs.Image",
                 "/camera/color/camera_info@sensor_msgs/msg/CameraInfo@gz.msgs.CameraInfo",
-                "/camera/depth/image_rect_raw/points@sensor_msgs/msg/PointCloud2[ignition.msgs.PointCloudPacked",
+                "/camera/color/image_raw@sensor_msgs/msg/Image@gz.msgs.Image",
+                "/camera/depth/camera_info@sensor_msgs/msg/CameraInfo@gz.msgs.CameraInfo",
+                "/camera/depth/image_rect_raw@sensor_msgs/msg/Image@gz.msgs.Image",
             ]
         )
 
