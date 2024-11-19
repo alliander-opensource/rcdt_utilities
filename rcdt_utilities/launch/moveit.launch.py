@@ -5,35 +5,32 @@
 from launch import LaunchDescription, LaunchContext, LaunchDescriptionEntity
 from launch.actions import OpaqueFunction, ExecuteProcess
 from launch_ros.actions import Node
-from rcdt_utilities.launch_utils import LaunchArgument, get_yaml, get_file_path
-from moveit_configs_utils import MoveItConfigsBuilder
+from rcdt_utilities.launch_utils import (
+    LaunchArgument,
+    get_yaml,
+    get_file_path,
+    get_moveit_parameters,
+)
 
 SKIP = LaunchDescriptionEntity()
 
 use_sim_arg = LaunchArgument("simulation", True, [True, False])
 moveit_mode_arg = LaunchArgument("moveit", "off", ["node", "rviz", "servo", "off"])
-moveit_config_package_arg = LaunchArgument(
-    "moveit_config_package", "rcdt_franka_moveit_config"
-)
+moveit_package_name_arg = LaunchArgument("moveit_package_name", "")
 servo_params_package_arg = LaunchArgument("servo_params_package", "rcdt_franka")
 
 
 def launch_setup(context: LaunchContext) -> None:
     use_sim = use_sim_arg.value(context)
     moveit_mode = moveit_mode_arg.value(context)
-    config_package = moveit_config_package_arg.value(context)
+    package_name = moveit_package_name_arg.value(context)
     servo_params_package = servo_params_package_arg.value(context)
 
-    # Create moveit config dictionary:
-    moveit_config = MoveItConfigsBuilder(robot_name="fr3", package_name=config_package)
-    if moveit_mode == "node":
-        moveit_config.trajectory_execution(
-            get_file_path(config_package, ["config"], "moveit_controllers.yaml")
-        )
-        moveit_config.moveit_cpp(
-            get_file_path(config_package, ["config"], "planning_pipeline.yaml")
-        )
-    moveit_config = moveit_config.to_dict()
+    moveit_config = get_moveit_parameters(
+        robot_name="fr3",
+        package_name=package_name,
+        mode=moveit_mode,
+    )
 
     # Moveit as node:
     moveit_node = Node(
@@ -46,14 +43,6 @@ def launch_setup(context: LaunchContext) -> None:
     moveit_rviz = Node(
         package="moveit_ros_move_group",
         executable="move_group",
-        parameters=[moveit_config],
-    )
-
-    display_config_moveit = get_file_path("rcdt_utilities", ["rviz"], "moveit.rviz")
-    rviz = Node(
-        package="rviz2",
-        executable="rviz2",
-        arguments=["--display-config", display_config_moveit],
         parameters=[moveit_config],
     )
 
@@ -93,7 +82,6 @@ def launch_setup(context: LaunchContext) -> None:
 
     return [
         moveit,
-        rviz if moveit_mode == "rviz" else SKIP,
         set_servo_command_type if moveit_mode == "servo" else SKIP,
     ]
 
@@ -101,8 +89,9 @@ def launch_setup(context: LaunchContext) -> None:
 def generate_launch_description() -> LaunchDescription:
     return LaunchDescription(
         [
+            use_sim_arg.declaration,
             moveit_mode_arg.declaration,
-            moveit_config_package_arg.declaration,
+            moveit_package_name_arg.declaration,
             servo_params_package_arg.declaration,
             OpaqueFunction(function=launch_setup),
         ]

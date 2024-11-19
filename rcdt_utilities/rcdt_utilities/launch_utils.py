@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from typing import List
+from typing import List, Literal
 import os
 import yaml
 import xacro
@@ -61,5 +61,18 @@ def get_robot_description(xacro_path: str, xacro_arguments: dict = None) -> str:
     return {"robot_description": robot_description_config.toxml()}
 
 
-def get_moveit_parameters(robot_name: str, package_name: str) -> dict:
-    return MoveItConfigsBuilder(robot_name, package_name=package_name).to_dict()
+def get_moveit_parameters(
+    robot_name: str,
+    package_name: str,
+    mode: Literal["off", "rviz", "sevo", "node"] = "off",
+) -> dict:
+    moveit_config = MoveItConfigsBuilder(robot_name, package_name=package_name)
+    match mode:
+        case "node":
+            moveit_config.trajectory_execution(
+                get_file_path(package_name, ["config"], "moveit_controllers.yaml")
+            )
+            moveit_config.moveit_cpp(
+                get_file_path(package_name, ["config"], "planning_pipeline.yaml")
+            )
+    return moveit_config.to_dict()
