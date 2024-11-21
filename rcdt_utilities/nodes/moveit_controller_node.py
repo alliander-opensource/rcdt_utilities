@@ -107,30 +107,27 @@ class MoveitControllerNode(Node):
     def add_object(
         self, request: AddObject.Request, response: AddObject.Response
     ) -> None:
+        collision_object = request.object
+        collision_object.operation = CollisionObject.ADD
+        collision_object.header.frame_id = "fr3_link0"
+        scene: PlanningScene
         with self.monitor.read_write() as scene:
-            scene: PlanningScene
-
-            collision_object = request.object
-            collision_object.operation = CollisionObject.ADD
-            collision_object.header.frame_id = "fr3_link0"
-
             scene.apply_collision_object(collision_object)
             current_state: RobotState = scene.current_state
-            current_state.update()
-            response.success = True
-            return response
+        current_state.update()
+        response.success = True
+        return response
 
     def clear_objects(
         self, _request: Trigger.Request, response: Trigger.Response
     ) -> None:
+        scene: PlanningScene
         with self.monitor.read_write() as scene:
-            scene: PlanningScene
-
             scene.remove_all_collision_objects()
             current_state: RobotState = scene.current_state
-            current_state.update()
-            response.success = True
-            return response
+        current_state.update()
+        response.success = True
+        return response
 
 
 def main(args: str = None) -> None:
