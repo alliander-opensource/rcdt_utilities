@@ -11,14 +11,18 @@ from rclpy.node import Node
 from rclpy.action import ActionServer
 from rclpy.action.server import ServerGoalHandle
 
-from moveit.planning import MoveItPy, PlanningComponent
+from moveit.planning import MoveItPy, PlanningComponent, PlanningSceneMonitor
 from moveit.core.robot_state import RobotState
 from moveit.core.robot_model import RobotModel, JointModelGroup
 from moveit.core.planning_interface import MotionPlanResponse
 from moveit.core.controller_manager import ExecutionStatus
-from rcdt_utilities_msgs.action import Moveit
+from moveit.core.planning_scene import PlanningScene
 
 from geometry_msgs.msg import PoseStamped
+from moveit_msgs.msg import CollisionObject
+from rcdt_utilities_msgs.action import Moveit
+from rcdt_utilities_msgs.srv import AddObject
+from std_srvs.srv import Trigger
 
 
 class MoveitControllerNode(Node):
@@ -32,8 +36,11 @@ class MoveitControllerNode(Node):
         if not self.init_links(group):
             return
         self.planner: PlanningComponent = self.robot.get_planning_component(group)
+        self.monitor: PlanningSceneMonitor = self.robot.get_planning_scene_monitor()
 
         self.server = ActionServer(self, Moveit, name, self.callback)
+        self.create_service(AddObject, "~/add_object", self.add_object)
+        self.create_service(Trigger, "~/clear_objects", self.clear_objects)
 
     def init_links(self, group: str) -> bool:
         robot_model: RobotModel = self.robot.get_robot_model()
@@ -96,6 +103,31 @@ class MoveitControllerNode(Node):
             return False
         self.planner.set_goal_state(pose_stamped_msg=pose, pose_link=self.ee_link)
         return self.plan_and_execute()
+
+    def add_object(
+        self, request: AddObject.Request, response: AddObject.Response
+    ) -> None:
+        collision_object = request.object
+        collision_object.operation = CollisionObject.ADD
+        collision_object.header.frame_id = "fr3_link0"
+        scene: PlanningScene
+        with self.monitor.read_write() as scene:
+            scene.apply_collision_object(collision_object)
+            current_state: RobotState = scene.current_state
+        current_state.update()
+        response.success = True
+        return response
+
+    def clear_objects(
+        self, _request: Trigger.Request, response: Trigger.Response
+    ) -> None:
+        scene: PlanningScene
+        with self.monitor.read_write() as scene:
+            scene.remove_all_collision_objects()
+            current_state: RobotState = scene.current_state
+        current_state.update()
+        response.success = True
+        return response
 
 
 def main(args: str = None) -> None:
